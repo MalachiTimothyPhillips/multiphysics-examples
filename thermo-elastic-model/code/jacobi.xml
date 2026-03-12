@@ -1,0 +1,8 @@
+<ParameterList name="Ifpack2">
+  <Parameter name="Prec Type" type="string" value="RELAXATION"/>
+  <ParameterList name="Ifpack2::Relaxation">
+    <Parameter name="relaxation: type" type="string" value="Jacobi"/>
+    <Parameter name="relaxation: damping factor" type="double" value="1.0"/>
+    <Parameter name="relaxation: sweeps" type="int" value="1"/>
+  </ParameterList>
+</ParameterList>
