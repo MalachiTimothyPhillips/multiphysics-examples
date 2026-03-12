@@ -1,0 +1,51 @@
+<ParameterList>
+  <ParameterList name="myInverse">
+    <Parameter name="Type" type="string" value="Block Gauss-Seidel"/>
+    <Parameter name="Inverse Type 1" type="string" value="Elasticity"/>
+    <Parameter name="Inverse Type 2" type="string" value="Temperature"/>
+  </ParameterList>
+
+  <ParameterList name="Elasticity">
+    <Parameter name="Type" type="string" value="MueLu"/>
+    <Parameter name="number of equations" type="int" value="2"/>
+
+    <Parameter name="verbosity" type="string" value="none"/>
+    <Parameter name="smoother: type" type="string" value="CHEBYSHEV"/>
+    <ParameterList name="smoother: params">
+      <Parameter name="chebyshev: degree" type="int" value="4"/>
+      <Parameter name="chebyshev: ratio eigenvalue" type="double" value="2.00000000000000000e+01"/>
+      <Parameter name="chebyshev: min eigenvalue" type="double" value="1.00000000000000000e+00"/>
+      <Parameter name="chebyshev: zero starting solution" type="bool" value="true"/>
+      <Parameter name="chebyshev: eigenvalue max iterations" type="int" value="15"/>
+    </ParameterList>
+
+    <Parameter name="aggregation: drop scheme" type="string" value="classical"/>
+    <Parameter name="aggregation: classical algo" type="string" value="default"/>
+    <Parameter name="aggregation: drop tol" type="double" value="0.02"/>
+  </ParameterList>
+
+  <ParameterList name="Temperature">
+    <Parameter name="Type" type="string" value="MueLu"/>
+    <Parameter name="verbosity" type="string" value="none"/>
+    <!--<Parameter name="coarse: max size" type="int" value="2000"/>-->
+
+    <Parameter name="smoother: type" type="string" value="SCHWARZ"/>
+    <Parameter name="smoother: overlap" type="int" value="1"/>
+    <ParameterList name="smoother: params">
+      <Parameter name="schwarz: subdomain solver: type" type="string" value="RILUK"/>
+      <ParameterList name="schwarz: subdomain solver: params">
+        <Parameter name="fact: iluk level-of-fill" type="int" value="1"/>
+        <Parameter name="fact: relax value" type="double" value="0.0"/>
+        <Parameter name="fact: absolute threshold" type="double" value="0.0"/>
+        <Parameter name="fact: relative threshold" type="double" value="1.0"/>
+      </ParameterList>
+      <Parameter name="schwarz: use reordering" type="bool" value="true"/>
+      <ParameterList name="schwarz: reordering list">
+        <Parameter name="order_method" type="string" value="rcm"/>
+      </ParameterList>
+      <!--<Parameter name="schwarz: num iterations" type="int" value="1"/>-->
+      <!--<Parameter name="schwarz: damping factor" type="double" value="0.667"/>-->
+    </ParameterList>
+  </ParameterList>
+
+</ParameterList>

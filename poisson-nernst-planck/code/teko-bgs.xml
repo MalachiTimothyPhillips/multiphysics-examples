@@ -1,0 +1,90 @@
+<ParameterList>
+  <ParameterList name="myInverse">
+    <Parameter name="Type" type="string" value="Block Gauss-Seidel"/>
+    <Parameter name="Inverse Type 1" type="string" value="Poisson"/>
+    <Parameter name="Inverse Type 2" type="string" value="Nernst-Planck-ddilu"/>
+  </ParameterList>
+
+  <ParameterList name="Poisson">
+    <Parameter name="Type" type="string" value="MueLu"/>
+
+    <Parameter name="verbosity" type="string" value="high"/>
+    <Parameter name="smoother: type" type="string" value="CHEBYSHEV"/>
+    <Parameter name="sa: use rowsumabs diagonal scaling" type="bool" value="true"/>
+    <ParameterList name="smoother: params">
+      <Parameter name="chebyshev: degree" type="int" value="4"/>
+      <Parameter name="chebyshev: ratio eigenvalue" type="double" value="2.00000000000000000e+01"/>
+      <Parameter name="chebyshev: min eigenvalue" type="double" value="1.00000000000000000e+00"/>
+      <Parameter name="chebyshev: zero starting solution" type="bool" value="true"/>
+      <Parameter name="chebyshev: eigenvalue max iterations" type="int" value="15"/>
+      <Parameter name="chebyshev: use rowsumabs diagonal scaling" type="bool" value="true"/>
+    </ParameterList>
+
+    <Parameter name="aggregation: drop scheme" type="string" value="classical"/>
+    <Parameter name="aggregation: classical algo" type="string" value="default"/>
+    <Parameter name="aggregation: drop tol" type="double" value="0.01"/>
+  </ParameterList>
+
+  <ParameterList name="Nernst-Planck-ddilu">
+    <Parameter name="Type" type="string" value="Ifpack2"/>
+    <Parameter name="Prec Type" type="string" value="SCHWARZ"/>
+
+    <ParameterList name="Ifpack2 Settings">
+      <Parameter name="schwarz: inner solver name" type="string" value="RILUK"/>
+      <Parameter name="schwarz: overlap level" type="int" value="1"/>
+      <ParameterList name="schwarz: subdomain solver parameters">
+        <Parameter name="fact: iluk level-of-fill" type="int" value="1"/>
+        <Parameter name="fact: relax value" type="double" value="0.0"/>
+        <Parameter name="fact: absolute threshold" type="double" value="0.0"/>
+        <Parameter name="fact: relative threshold" type="double" value="1.0"/>
+      </ParameterList>
+      <Parameter name="schwarz: use reordering" type="bool" value="true"/>
+      <ParameterList name="schwarz: reordering list">
+        <Parameter name="order_method" type="string" value="rcm"/>
+      </ParameterList>
+      <Parameter name="schwarz: num iterations" type="int" value="1"/>
+    </ParameterList>
+  </ParameterList>
+
+  <!-- Note: this does disasterously poor -->
+  <ParameterList name="Nernst-Planck">
+    <Parameter name="Type" type="string" value="MueLu"/>
+
+    <Parameter name="multigrid algorithm" type="string" value="pg"/>
+    <!--<Parameter name="multigrid algorithm" type="string" value="unsmoothed"/>-->
+    <Parameter name="problem: symmetric" type="bool" value="false"/>
+    <Parameter name="transpose: use implicit" type="bool" value="false"/>
+
+    <!--<Parameter name="verbosity" type="string" value="high"/>-->
+
+    <Parameter name="smoother: type" type="string" value="SCHWARZ"/>
+    <ParameterList name="smoother: params">
+      <Parameter name="schwarz: num iterations" type="int" value="1"/>
+      <Parameter name="schwarz: damping factor" type="double" value="1.0"/>
+      <Parameter name="schwarz: overlap level"            type="int"    value="1"/>
+      <Parameter name="schwarz: use reordering"           type="bool"   value="true"/>
+      <ParameterList name="schwarz: reordering list">
+        <Parameter name="order_method"                    type="string"  value="rcm"/>
+        <Parameter name="symmetrize" type="bool" value="true"/>
+      </ParameterList>
+
+      <Parameter name="subdomain solver name"             type="string" value="RILUK"/>
+      <ParameterList name="subdomain solver parameters">
+        <Parameter name= "fact: iluk level-of-fill"         type="int"    value="1"/>
+      </ParameterList>
+    </ParameterList>
+
+    <!--
+    <Parameter name="smoother: type" type="string" value="RELAXATION"/>
+    <ParameterList name="smoother: params">
+      <Parameter name="relaxation: type"  type="string" value="Gauss-Seidel"/>
+      <Parameter name="relaxation: sweeps" type="int" value="3"/>
+      <Parameter name="relaxation: damping factor" type="double" value="0.667"/>
+    </ParameterList>
+    -->
+
+
+  </ParameterList>
+
+
+</ParameterList>
