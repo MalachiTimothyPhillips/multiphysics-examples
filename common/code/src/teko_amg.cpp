@@ -62,7 +62,7 @@ public:
   {
     if (useBlockSmoothers_)
     {
-      auto comm = extract_communicator(A_);
+      auto comm = util::extract_communicator(A_);
       Teuchos::RCP<const Thyra::MultiVectorBase<ST>> r_cast =
           Teuchos::rcp_dynamic_cast<const Thyra::MultiVectorBase<ST>>(r);
       Teuchos::RCP<Thyra::MultiVectorBase<ST>> z_cast =
@@ -82,8 +82,8 @@ public:
             *Teuchos::TimeMonitor::getNewTimer("Convert Input Block Vectors to Vector"));
         if (!flattened_r_)
         {
-          flattened_r_ = convert_block_vector_to_vector(r);
-          flattened_z_ = convert_block_vector_to_vector(z);
+          flattened_r_ = util::convert_block_vector_to_vector(r);
+          flattened_z_ = util::convert_block_vector_to_vector(z);
         }
         else
         {
@@ -167,7 +167,7 @@ Teko::LinearOp BlockAMGPreconditionerFactory::buildPreconditionerOperator(
           A_blocked_xpetra->setMatrix(row,
               col,
               Xpetra::toXpetra(Teuchos::rcp_const_cast<Tpetra::CrsMatrix<ST, LO, GO, NT>>(
-                  get_crs_matrix(row, col, blo))));
+                  util::get_crs_matrix(row, col, blo))));
         }
       }
     }
