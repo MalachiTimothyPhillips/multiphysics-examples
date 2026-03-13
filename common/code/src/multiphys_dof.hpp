@@ -14,7 +14,7 @@
 
 #include "multiphys_mesh.hpp"
 
-namespace tt {
+namespace multiphys {
 
 // Build blocked monolithic map from a nodal map:
 // mono = [ nodeGID ] union [ nodeGID + NglobNodes ] with the same ownership/ghosting as nodeMap.
@@ -69,4 +69,4 @@ buildMonolithicMapNFieldFromNodeMap(const Teuchos::RCP<const map_type>& nodeMap,
                                   nodeMap->getComm()));
 }
 
-} // namespace tt
+} // namespace multiphys

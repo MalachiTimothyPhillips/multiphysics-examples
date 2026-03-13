@@ -16,7 +16,7 @@
 #include "multiphys_mesh.hpp"
 #include "multiphys_q1_assembly.hpp" // for shapeQ1/invert2x2
 
-namespace tt::mms {
+namespace multiphys::mms {
 
 using mv_type = Tpetra::MultiVector<SC,LO,GO,NO>;
 
@@ -95,7 +95,7 @@ inline void assembleMonolithicRHS_andExact_onOverlap(
       const SC w = 1.0;
 
       SC N[4], dN_dxi[4], dN_deta[4];
-      tt::shapeQ1(xi,eta,N,dN_dxi,dN_deta);
+      multiphys::shapeQ1(xi,eta,N,dN_dxi,dN_deta);
 
       SC xq=0.0,yq=0.0;
       for (int aN=0;aN<4;++aN) { xq += N[aN]*x[aN]; yq += N[aN]*y[aN]; }
@@ -109,7 +109,7 @@ inline void assembleMonolithicRHS_andExact_onOverlap(
       }
 
       SC invJ[2][2], detJ=0.0;
-      tt::invert2x2(J, invJ, detJ);
+      multiphys::invert2x2(J, invJ, detJ);
       const SC dV = w*detJ;
 
       const SC Teq = std::sin(pi*xq)*std::sin(pi*yq);
@@ -135,4 +135,4 @@ inline void assembleMonolithicRHS_andExact_onOverlap(
   }
 }
 
-} // namespace tt::mms
+} // namespace multiphys::mms

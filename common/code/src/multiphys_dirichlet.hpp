@@ -17,7 +17,7 @@
 
 #include "multiphys_mesh.hpp"
 
-namespace tt {
+namespace multiphys {
 
 template<class SC_, class LO_, class GO_, class NO_>
 void applyHomogeneousDirichlet_Monolithic2Field(
@@ -38,7 +38,7 @@ void applyHomogeneousDirichlet_Monolithic2Field(
     const GO_ grow = rowMap->getGlobalElement(lrow);
     GO_ nodeG = (grow >= NglobNodes ? grow - NglobNodes : grow);
 
-    if (!tt::isBoundaryNode((GO)nodeG, Nx, Ny)) continue;
+    if (!multiphys::isBoundaryNode((GO)nodeG, Nx, Ny)) continue;
 
     const size_t nnz = A.getNumEntriesInLocalRow(lrow);
 
@@ -103,7 +103,7 @@ void applyHomogeneousDirichlet_MonolithicNField(
     // (works with GO not necessarily nonnegative as long as numbering is standard nonnegative).
     const GO_ nodeG = grow % NglobNodes;
 
-    if (!tt::isBoundaryNode(static_cast<GO>(nodeG), Nx, Ny)) continue;
+    if (!multiphys::isBoundaryNode(static_cast<GO>(nodeG), Nx, Ny)) continue;
 
     const size_t nnz = A.getNumEntriesInLocalRow(lrow);
 
@@ -130,4 +130,4 @@ void applyHomogeneousDirichlet_MonolithicNField(
   A.fillComplete(A.getDomainMap(), A.getRangeMap());
 }
 
-} // namespace tt
+} // namespace multiphys

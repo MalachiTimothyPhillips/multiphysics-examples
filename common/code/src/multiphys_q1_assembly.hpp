@@ -19,7 +19,7 @@
 
 #include "multiphys_mesh.hpp"
 
-namespace tt {
+namespace multiphys {
 
 using crs_type    = Tpetra::CrsMatrix<SC,LO,GO,NO>;
 using vec_type    = Tpetra::Vector<SC,LO,GO,NO>;
@@ -206,4 +206,4 @@ inline SubBlocks buildKM_OverlapExported(
   return out;
 }
 
-} // namespace tt
+} // namespace multiphys

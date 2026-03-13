@@ -138,7 +138,7 @@ void solveGMRESRightPrec(const Teuchos::RCP<Tpetra::Operator<ST,LO,GO,NO>>& A,
 int main(int argc, char** argv)
 {
   Tpetra::ScopeGuard scope(&argc, &argv);
-  using namespace tt;
+  using namespace multiphys;
 
   int Nx = 81*8;
   int Ny = 81*8;
@@ -172,13 +172,13 @@ int main(int argc, char** argv)
   // sanity checks
   TEUCHOS_TEST_FOR_EXCEPTION(Nx < 2 || Ny < 2, std::runtime_error, "Nx and Ny must be >= 2");
 
-  tt::solvers::SolverChoice which = tt::solvers::parseSolverChoice(solverName);
+  multiphys::solvers::SolverChoice which = multiphys::solvers::parseSolverChoice(solverName);
 
   const SC ke = 1.0;
   const SC kl = 0.5;
 
   // 1) Build Ke, Kl, M (owned)
-  auto km = tt::buildKM_OverlapExported(
+  auto km = multiphys::buildKM_OverlapExported(
       Nx, Ny, x0,x1,y0,y1,
       [&](vec_type& v, const CoordView&){ v.putScalar(ke); },
       [&](vec_type& v, const CoordView&){ v.putScalar(kl); });
@@ -189,7 +189,7 @@ int main(int argc, char** argv)
   }
 
   // 2) Form block matrices (owned)
-  using crs_t = tt::crs_type;
+  using crs_t = multiphys::crs_type;
   Teuchos::RCP<crs_t> A11, A22;
   Tpetra::MatrixMatrix::Add(*km.Ke, false, 1.0, *km.M, false, g, A11); A11->fillComplete();
   Tpetra::MatrixMatrix::Add(*km.Kl, false, 1.0, *km.M, false, g, A22); A22->fillComplete();
@@ -199,12 +199,12 @@ int main(int argc, char** argv)
   A12->scale(-g); A21->scale(-g);
 
   // Apply boundary conditions 
-  auto boundary = tt::boundaryNodeGIDs(Nx, Ny);
+  auto boundary = multiphys::boundaryNodeGIDs(Nx, Ny);
 
-  tt::applyDirichletRows_DiagBlock(*A11, boundary());
-  tt::applyDirichletRows_DiagBlock(*A22, boundary());
-  tt::applyDirichletRows_OffDiagBlock(*A12, boundary());
-  tt::applyDirichletRows_OffDiagBlock(*A21, boundary());
+  multiphys::applyDirichletRows_DiagBlock(*A11, boundary());
+  multiphys::applyDirichletRows_DiagBlock(*A22, boundary());
+  multiphys::applyDirichletRows_OffDiagBlock(*A12, boundary());
+  multiphys::applyDirichletRows_OffDiagBlock(*A21, boundary());
 
   // 3) Build blocked operator and merged monolithic matrix
   auto bloOp = Teko::createBlockedOp();
@@ -237,19 +237,19 @@ int main(int argc, char** argv)
   // 4) Build overlap maps for MMS (true ghosting)
 
   auto ownedNodeMap = km.M->getRowMap();
-  auto ownedElemConn = tt::buildOwnedElementConnectivity(ownedNodeMap, Nx, Ny);
+  auto ownedElemConn = multiphys::buildOwnedElementConnectivity(ownedNodeMap, Nx, Ny);
 
-  auto overlapNodeMap = tt::buildOverlapNodeMap(ownedNodeMap, ownedElemConn);
-  auto coordsOverlap  = tt::buildCoordsStructured(overlapNodeMap, Nx, Ny, x0,x1,y0,y1);
+  auto overlapNodeMap = multiphys::buildOverlapNodeMap(ownedNodeMap, ownedElemConn);
+  auto coordsOverlap  = multiphys::buildCoordsStructured(overlapNodeMap, Nx, Ny, x0,x1,y0,y1);
 
-  auto overlapMonoMap = tt::buildMonolithicMap2FieldFromNodeMap(overlapNodeMap, NglobNodes);
+  auto overlapMonoMap = multiphys::buildMonolithicMap2FieldFromNodeMap(overlapNodeMap, NglobNodes);
 
   // Owned monolithic map comes from the merged matrix
   auto ownedMonoMap = Amono->getRowMap();
 
   // 5) Assemble MMS on overlap monolithic map
   Tpetra::MultiVector<SC,LO,GO,NO> b_ov(overlapMonoMap, 1), xexact_ov(overlapMonoMap, 1);
-  tt::mms::assembleMonolithicRHS_andExact_onOverlap(
+  multiphys::mms::assembleMonolithicRHS_andExact_onOverlap(
       overlapNodeMap, overlapMonoMap, coordsOverlap, ownedElemConn,
       b_ov, xexact_ov, Nx, Ny, ke, kl, g);
 
@@ -257,13 +257,13 @@ int main(int argc, char** argv)
   Tpetra::MultiVector<SC,LO,GO,NO> b(ownedMonoMap, 1), xexact(ownedMonoMap, 1), x(ownedMonoMap, 1);
 
   // RHS assembled on overlap should be ADD-exported
-  tt::exportMonolithicVector(b_ov, b, *overlapMonoMap, *ownedMonoMap, Tpetra::ADD);
+  multiphys::exportMonolithicVector(b_ov, b, *overlapMonoMap, *ownedMonoMap, Tpetra::ADD);
 
   // Exact nodal samples are duplicates-consistent -> INSERT is fine (ADD also works but noisier)
-  tt::exportMonolithicVector(xexact_ov, xexact, *overlapMonoMap, *ownedMonoMap, Tpetra::INSERT);
+  multiphys::exportMonolithicVector(xexact_ov, xexact, *overlapMonoMap, *ownedMonoMap, Tpetra::INSERT);
 
   // Apply Dirichlet to monolithic system + owned RHS
-  tt::applyHomogeneousDirichlet_Monolithic2Field(*Amono, &b, Nx, Ny);
+  multiphys::applyHomogeneousDirichlet_Monolithic2Field(*Amono, &b, Nx, Ny);
 
   // 7) Solve (example: Ifpack2 Schwarz+RILUK)
   x.putScalar(0.0);
@@ -291,18 +291,18 @@ int main(int argc, char** argv)
   x_rcp->putScalar(0.0);
 
   switch (which) {
-    case tt::solvers::SolverChoice::Ifpack2SchwarzRILUK:
-      tt::solvers::solveWithIfpack2SchwarzRILUK_GMRES(Aop, b_rcp, x_rcp, maxIters, tol, solverXml);
+    case multiphys::solvers::SolverChoice::Ifpack2SchwarzRILUK:
+      multiphys::solvers::solveWithIfpack2SchwarzRILUK_GMRES(Aop, b_rcp, x_rcp, maxIters, tol, solverXml);
       report("Ifpack2 + GMRES:");
       break;
   
-    case tt::solvers::SolverChoice::TekoBGS:
-      tt::solvers::solveWithTekoBGS_GMRES(bloOp, b_rcp, x_rcp, maxIters, tol, solverXml);
+    case multiphys::solvers::SolverChoice::TekoBGS:
+      multiphys::solvers::solveWithTekoBGS_GMRES(bloOp, b_rcp, x_rcp, maxIters, tol, solverXml);
       report("Block Gauss-Seidel + GMRES:");
       break;
   
-    case tt::solvers::SolverChoice::TekoMonolithicAMG:
-      tt::solvers::solveWithTekoMonolithicAMG_GMRES(bloOp, b_rcp, x_rcp, maxIters, tol, solverXml);
+    case multiphys::solvers::SolverChoice::TekoMonolithicAMG:
+      multiphys::solvers::solveWithTekoMonolithicAMG_GMRES(bloOp, b_rcp, x_rcp, maxIters, tol, solverXml);
       report("Monolithic AMG + GMRES:");
       break;
   }

@@ -62,14 +62,14 @@
 
 namespace {
 
-using SC = tt::SC;
-using LO = tt::LO;
-using GO = tt::GO;
-using NO = tt::NO;
+using SC = multiphys::SC;
+using LO = multiphys::LO;
+using GO = multiphys::GO;
+using NO = multiphys::NO;
 
-using crs_type = tt::crs_type;
+using crs_type = multiphys::crs_type;
 using mv_type  = Tpetra::MultiVector<SC,LO,GO,NO>;
-using vec_type = tt::vec_type;
+using vec_type = multiphys::vec_type;
 
 template<class SC_, class LO_, class GO_, class NO_>
 Teuchos::Array<typename Teuchos::ScalarTraits<SC_>::magnitudeType>
@@ -148,16 +148,16 @@ struct BlocksOverlap {
 };
 
 inline BlocksOverlap assembleBlocksOverlap_Q1_MMS(
-    const Teuchos::RCP<const tt::map_type>& overlapNodeMap,
-    const tt::CoordView& coordsOverlap,
-    const tt::ConnView& ownedElemConn,
+    const Teuchos::RCP<const multiphys::map_type>& overlapNodeMap,
+    const multiphys::CoordView& coordsOverlap,
+    const multiphys::ConnView& ownedElemConn,
     int Nx, int Ny,
     SC x0, SC x1, SC y0, SC y1,
     SC eps, SC D, SC alpha, SC zF)
 {
   (void)Ny;
 
-  auto G_ov = tt::buildQ1GraphFromOwnedElements(overlapNodeMap, ownedElemConn);
+  auto G_ov = multiphys::buildQ1GraphFromOwnedElements(overlapNodeMap, ownedElemConn);
 
   auto A00 = Teuchos::rcp(new crs_type(G_ov));
   auto A01 = Teuchos::rcp(new crs_type(G_ov));
@@ -183,8 +183,8 @@ inline BlocksOverlap assembleBlocksOverlap_Q1_MMS(
     for (LO l=0; l<nLocal; ++l) {
       const SC X = coordsOverlap(l,0);
       const SC Y = coordsOverlap(l,1);
-      ph(l,0) = tt::mms_pnp_linear::phi_ex(X,Y);
-      ch(l,0) = tt::mms_pnp_linear::c_ex(X,Y);
+      ph(l,0) = multiphys::mms_pnp_linear::phi_ex(X,Y);
+      ch(l,0) = multiphys::mms_pnp_linear::c_ex(X,Y);
     }
   }
 
@@ -221,7 +221,7 @@ inline BlocksOverlap assembleBlocksOverlap_Q1_MMS(
       const SC wq = 1.0;
 
       SC N[4], dN_dxi[4], dN_deta[4];
-      tt::shapeQ1(xi,eta,N,dN_dxi,dN_deta);
+      multiphys::shapeQ1(xi,eta,N,dN_dxi,dN_deta);
 
       SC xq=0.0, yq=0.0;
       for (int aN=0;aN<4;++aN) { xq += N[aN]*x[aN]; yq += N[aN]*y[aN]; }
@@ -235,7 +235,7 @@ inline BlocksOverlap assembleBlocksOverlap_Q1_MMS(
       }
 
       SC invJ[2][2], detJ=0.0;
-      tt::invert2x2(J, invJ, detJ);
+      multiphys::invert2x2(J, invJ, detJ);
       const SC dV = wq*detJ;
 
       SC dN_dx[4], dN_dy[4];
@@ -245,12 +245,12 @@ inline BlocksOverlap assembleBlocksOverlap_Q1_MMS(
       }
 
       // MMS sources evaluated at quadrature
-      const SC rhoF = tt::mms_pnp_linear::rho_f(xq,yq, eps, zF);
-      const SC sNP  = tt::mms_pnp_linear::np_source(xq,yq, D, alpha);
+      const SC rhoF = multiphys::mms_pnp_linear::rho_f(xq,yq, eps, zF);
+      const SC sNP  = multiphys::mms_pnp_linear::np_source(xq,yq, D, alpha);
 
       // u at quadrature (prescribed field)
-      const SC ux = tt::mms_pnp_linear::ux(xq,yq);
-      const SC uy = tt::mms_pnp_linear::uy(xq,yq);
+      const SC ux = multiphys::mms_pnp_linear::ux(xq,yq);
+      const SC uy = multiphys::mms_pnp_linear::uy(xq,yq);
 
       for (int i=0;i<4;++i) {
         fe[i] += rhoF * N[i] * dV;
@@ -322,14 +322,14 @@ inline void applyDirichletToScalarBlocksAndRHS(
     int Nx, int Ny,
     SC x0, SC x1, SC y0, SC y1)
 {
-  auto boundary = tt::boundaryNodeGIDs(Nx, Ny);
+  auto boundary = multiphys::boundaryNodeGIDs(Nx, Ny);
 
   // Replace rows in diagonal blocks / zero rows in off-diagonal blocks
-  tt::applyDirichletRows_DiagBlock(A00, boundary());
-  tt::applyDirichletRows_OffDiagBlock(A01, boundary());
+  multiphys::applyDirichletRows_DiagBlock(A00, boundary());
+  multiphys::applyDirichletRows_OffDiagBlock(A01, boundary());
 
-  tt::applyDirichletRows_DiagBlock(A11, boundary());
-  tt::applyDirichletRows_OffDiagBlock(A10, boundary());
+  multiphys::applyDirichletRows_DiagBlock(A11, boundary());
+  multiphys::applyDirichletRows_OffDiagBlock(A10, boundary());
 
   // Set RHS to Dirichlet values at boundary nodes (owned rows only)
   auto map = bphi.getMap();
@@ -339,21 +339,21 @@ inline void applyDirichletToScalarBlocksAndRHS(
   const LO nLocal = (LO)map->getLocalNumElements();
   for (LO l=0; l<nLocal; ++l) {
     const GO nodeG = map->getGlobalElement(l);
-    if (!tt::isBoundaryNode(nodeG, Nx, Ny)) continue;
+    if (!multiphys::isBoundaryNode(nodeG, Nx, Ny)) continue;
 
     // recover coords for structured domain
-    int i,j; tt::nodeIJ(nodeG, Nx, i, j);
+    int i,j; multiphys::nodeIJ(nodeG, Nx, i, j);
     const SC X = x0 + (x1-x0)*SC(i)/SC(Nx-1);
     const SC Y = y0 + (y1-y0)*SC(j)/SC(Ny-1);
 
-    bph(l,0) = tt::mms_pnp_linear::phi_ex(X,Y);
-    bch(l,0) = tt::mms_pnp_linear::c_ex(X,Y);
+    bph(l,0) = multiphys::mms_pnp_linear::phi_ex(X,Y);
+    bch(l,0) = multiphys::mms_pnp_linear::c_ex(X,Y);
   }
 }
 
 // Build monolithic vectors xexact = [phi_ex; c_ex] and b=[bphi; bc] on the owned monolithic map.
-inline void packMonolithic2Field(const tt::map_type& ownedNodeMap,
-                                 const tt::map_type& ownedMonoMap,
+inline void packMonolithic2Field(const multiphys::map_type& ownedNodeMap,
+                                 const multiphys::map_type& ownedMonoMap,
                                  GO NglobNodes,
                                  const mv_type& phiNode,
                                  const mv_type& cNode,
@@ -409,7 +409,7 @@ void print_Teuchos_stacked_timer(const Teuchos::RCP<const Comm> & comm)
 int main(int argc, char** argv)
 {
   Tpetra::ScopeGuard scope(&argc, &argv);
-  using namespace tt;
+  using namespace multiphys;
 
   auto comm = Tpetra::getDefaultComm();
 
@@ -455,15 +455,15 @@ int main(int argc, char** argv)
   TEUCHOS_TEST_FOR_EXCEPTION(eps <= 0.0, std::runtime_error, "eps must be positive");
   TEUCHOS_TEST_FOR_EXCEPTION(D   <= 0.0, std::runtime_error, "D must be positive");
 
-  tt::solvers::SolverChoice which = tt::solvers::parseSolverChoice(solverName);
+  multiphys::solvers::SolverChoice which = multiphys::solvers::parseSolverChoice(solverName);
 
   const GO NglobNodes = GO(Nx)*GO(Ny);
 
   // ---- build owned/overlap maps and connectivity ----
   auto ownedNodeMap = Teuchos::rcp(new map_type(NglobNodes, 0, comm));
-  ConnView ownedElemConn = tt::buildOwnedElementConnectivity(ownedNodeMap, Nx, Ny);
-  auto overlapNodeMap = tt::buildOverlapNodeMap(ownedNodeMap, ownedElemConn);
-  CoordView coordsOverlap = tt::buildCoordsStructured(overlapNodeMap, Nx, Ny, x0,x1,y0,y1);
+  ConnView ownedElemConn = multiphys::buildOwnedElementConnectivity(ownedNodeMap, Nx, Ny);
+  auto overlapNodeMap = multiphys::buildOverlapNodeMap(ownedNodeMap, ownedElemConn);
+  CoordView coordsOverlap = multiphys::buildCoordsStructured(overlapNodeMap, Nx, Ny, x0,x1,y0,y1);
 
   // ---- assemble overlap scalar blocks ----
   auto ov = assembleBlocksOverlap_Q1_MMS(overlapNodeMap, coordsOverlap, ownedElemConn,
@@ -472,7 +472,7 @@ int main(int argc, char** argv)
 
   // ---- export overlap blocks to owned ----
   auto exportToOwned = [&](const Teuchos::RCP<const crs_type>& Aov) {
-    return tt::exportToOwned(Aov, ownedNodeMap, overlapNodeMap);
+    return multiphys::exportToOwned(Aov, ownedNodeMap, overlapNodeMap);
   };
 
   auto A00 = exportToOwned(ov.A00_phi_phi);
@@ -484,11 +484,11 @@ int main(int argc, char** argv)
   mv_type bphi(ownedNodeMap, 1), bc(ownedNodeMap, 1);
   mv_type phi_exact(ownedNodeMap, 1), c_exact(ownedNodeMap, 1);
 
-  tt::exportMonolithicVector(*ov.bphi, bphi, *overlapNodeMap, *ownedNodeMap, Tpetra::ADD);
-  tt::exportMonolithicVector(*ov.bc,   bc,   *overlapNodeMap, *ownedNodeMap, Tpetra::ADD);
+  multiphys::exportMonolithicVector(*ov.bphi, bphi, *overlapNodeMap, *ownedNodeMap, Tpetra::ADD);
+  multiphys::exportMonolithicVector(*ov.bc,   bc,   *overlapNodeMap, *ownedNodeMap, Tpetra::ADD);
 
-  tt::exportMonolithicVector(*ov.phi_exact, phi_exact, *overlapNodeMap, *ownedNodeMap, Tpetra::INSERT);
-  tt::exportMonolithicVector(*ov.c_exact,   c_exact,   *overlapNodeMap, *ownedNodeMap, Tpetra::INSERT);
+  multiphys::exportMonolithicVector(*ov.phi_exact, phi_exact, *overlapNodeMap, *ownedNodeMap, Tpetra::INSERT);
+  multiphys::exportMonolithicVector(*ov.c_exact,   c_exact,   *overlapNodeMap, *ownedNodeMap, Tpetra::INSERT);
 
   // ---- apply Dirichlet at subblock level (and set RHS boundary values) ----
   applyDirichletToScalarBlocksAndRHS(*A00,*A01,*A10,*A11, bphi, bc, Nx, Ny, x0,x1,y0,y1);
@@ -554,7 +554,7 @@ int main(int argc, char** argv)
   }
 
   // ---- build scalar mass matrix M for L2 errors ----
-  auto km_for_mass = tt::buildKM_OverlapExported(
+  auto km_for_mass = multiphys::buildKM_OverlapExported(
       Nx, Ny, x0,x1,y0,y1,
       [&](vec_type& v, const CoordView&){ v.putScalar(1.0); },
       [&](vec_type& v, const CoordView&){ v.putScalar(1.0); });
@@ -580,23 +580,23 @@ int main(int argc, char** argv)
   auto b_rcp = Teuchos::rcpFromRef(bmono);
 
   switch (which) {
-    case tt::solvers::SolverChoice::Ifpack2SchwarzRILUK: {
+    case multiphys::solvers::SolverChoice::Ifpack2SchwarzRILUK: {
       auto Aop_mono = Teuchos::rcp_dynamic_cast<Tpetra::Operator<SC,LO,GO,NO>>(Amono, true);
-      tt::solvers::solveWithIfpack2SchwarzRILUK_GMRES(Aop_mono, b_rcp, xmono, maxIters, tol, solverXml);
+      multiphys::solvers::solveWithIfpack2SchwarzRILUK_GMRES(Aop_mono, b_rcp, xmono, maxIters, tol, solverXml);
       report("Ifpack2 + GMRES:");
       break;
     }
 
-    case tt::solvers::SolverChoice::TekoBGS: {
-      tt::solvers::solveWithTekoBGS_GMRES(bloOp, b_rcp, xmono, maxIters, tol, solverXml);
+    case multiphys::solvers::SolverChoice::TekoBGS: {
+      multiphys::solvers::solveWithTekoBGS_GMRES(bloOp, b_rcp, xmono, maxIters, tol, solverXml);
       report("Teko BGS + GMRES:");
       break;
     }
 
-    case tt::solvers::SolverChoice::TekoMonolithicAMG: {
+    case multiphys::solvers::SolverChoice::TekoMonolithicAMG: {
       // For this PNP system, no special nullspace is required if Dirichlet is applied.
       // Still, BlockAMG can accept nullspace vectors; we omit them here.
-      tt::solvers::solveWithTekoMonolithicAMG_GMRES(bloOp, b_rcp, xmono, maxIters, tol, solverXml);
+      multiphys::solvers::solveWithTekoMonolithicAMG_GMRES(bloOp, b_rcp, xmono, maxIters, tol, solverXml);
       report("Teko Monolithic AMG + GMRES:");
       break;
     }

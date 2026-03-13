@@ -13,7 +13,7 @@
 #include <cmath>
 #include "multiphys_mesh.hpp"
 
-namespace tt::mms_pnp_linear {
+namespace multiphys::mms_pnp_linear {
 
 inline SC pi() { return SC(3.141592653589793238462643383279502884); }
 
@@ -56,4 +56,4 @@ inline SC np_source(SC x, SC y, SC D, SC alpha)
   return -D*lap_c(x,y) - alpha*lap_phi(x,y) + div_uc;
 }
 
-} // namespace tt::mms_pnp_linear
+} // namespace multiphys::mms_pnp_linear

@@ -24,12 +24,12 @@
 #include "multiphys_dof.hpp"
 #include "multiphys_transfer.hpp"
 
-namespace tt::pnp_linear {
+namespace multiphys::pnp_linear {
 
-using crs_type = tt::crs_type;
+using crs_type = multiphys::crs_type;
 using mv_type  = Tpetra::MultiVector<SC,LO,GO,NO>;
-using export_type = tt::export_type;
-using vec_type = tt::vec_type;
+using export_type = multiphys::export_type;
+using vec_type = multiphys::vec_type;
 
 struct Params {
   SC eps   = 1.0;
@@ -61,7 +61,7 @@ inline void applyDirichlet_MonolithicNField_SetValue(
     const int field = int(grow / NglobNodes);
 
     if (field < 0 || field >= nFields) continue;
-    if (!tt::isBoundaryNode(nodeG, Nx, Ny)) continue;
+    if (!multiphys::isBoundaryNode(nodeG, Nx, Ny)) continue;
 
     const size_t nnz = A.getNumEntriesInLocalRow(lrow);
 
@@ -125,7 +125,7 @@ inline void assemble_element_Q1(
     const SC wq = 1.0;
 
     SC N[4], dN_dxi[4], dN_deta[4];
-    tt::shapeQ1(xi,eta,N,dN_dxi,dN_deta);
+    multiphys::shapeQ1(xi,eta,N,dN_dxi,dN_deta);
 
     SC J[2][2] = {{0,0},{0,0}};
     for (int aN=0;aN<4;++aN) {
@@ -136,7 +136,7 @@ inline void assemble_element_Q1(
     }
 
     SC invJ[2][2], detJ=0.0;
-    tt::invert2x2(J, invJ, detJ);
+    multiphys::invert2x2(J, invJ, detJ);
     const SC dV = wq*detJ;
 
     SC dN_dx[4], dN_dy[4];
@@ -202,9 +202,9 @@ inline SystemAndExact buildLinearPNP_MMS_System_OverlapExported(
   auto ownedNodeMap = Teuchos::rcp(new map_type(NglobNodes, 0, comm));
 
   // overlap connectivity/coords
-  ConnView ownedElemConn = tt::buildOwnedElementConnectivity(ownedNodeMap, Nx, Ny);
-  auto overlapNodeMap = tt::buildOverlapNodeMap(ownedNodeMap, ownedElemConn);
-  CoordView coordsOverlap = tt::buildCoordsStructured(overlapNodeMap, Nx, Ny, x0,x1,y0,y1);
+  ConnView ownedElemConn = multiphys::buildOwnedElementConnectivity(ownedNodeMap, Nx, Ny);
+  auto overlapNodeMap = multiphys::buildOverlapNodeMap(ownedNodeMap, ownedElemConn);
+  CoordView coordsOverlap = multiphys::buildCoordsStructured(overlapNodeMap, Nx, Ny, x0,x1,y0,y1);
 
   // overlap nodal fields
   vec_type phi_ex(overlapNodeMap), c_ex(overlapNodeMap);
@@ -214,8 +214,8 @@ inline SystemAndExact buildLinearPNP_MMS_System_OverlapExported(
 
   // monolithic maps: 2 fields
   const int nFields = 2;
-  auto overlapMonoMap = tt::buildMonolithicMapNFieldFromNodeMap(overlapNodeMap, NglobNodes, nFields);
-  auto ownedMonoMap   = tt::buildMonolithicMapNFieldFromNodeMap(ownedNodeMap,   NglobNodes, nFields);
+  auto overlapMonoMap = multiphys::buildMonolithicMapNFieldFromNodeMap(overlapNodeMap, NglobNodes, nFields);
+  auto ownedMonoMap   = multiphys::buildMonolithicMapNFieldFromNodeMap(ownedNodeMap,   NglobNodes, nFields);
 
   // assemble overlap A and b
   const size_t nnzPerRow = 18;
@@ -287,7 +287,7 @@ inline SystemAndExact buildLinearPNP_MMS_System_OverlapExported(
   A_owned->fillComplete(ownedMonoMap, ownedMonoMap);
 
   auto b_owned = Teuchos::make_rcp<mv_type>(ownedMonoMap, 1);
-  tt::exportMonolithicVector(b_ov, *b_owned, *overlapMonoMap, *ownedMonoMap, Tpetra::ADD);
+  multiphys::exportMonolithicVector(b_ov, *b_owned, *overlapMonoMap, *ownedMonoMap, Tpetra::ADD);
 
   // build xexact on owned monolithic map (by exporting overlap exact nodal data)
   mv_type xex_ov(overlapMonoMap, 1);
@@ -308,7 +308,7 @@ inline SystemAndExact buildLinearPNP_MMS_System_OverlapExported(
   }
 
   auto xexact_owned = Teuchos::make_rcp<mv_type>(ownedMonoMap, 1);
-  tt::exportMonolithicVector(xex_ov, *xexact_owned, *overlapMonoMap, *ownedMonoMap, Tpetra::INSERT);
+  multiphys::exportMonolithicVector(xex_ov, *xexact_owned, *overlapMonoMap, *ownedMonoMap, Tpetra::INSERT);
 
   // Dirichlet BCs: set boundary values to exact solution
   // field 0 = phi, field 1 = c
@@ -316,11 +316,11 @@ inline SystemAndExact buildLinearPNP_MMS_System_OverlapExported(
     // nodeG is global node id; recover coords analytically for structured grid:
     // since coords are available in your buildCoordsStructured on ownedNodeMap, you could also pass coords in.
     // Here assume [0,1]x[0,1] structured:
-    int i,j; tt::nodeIJ(nodeG, Nx, i, j);
+    int i,j; multiphys::nodeIJ(nodeG, Nx, i, j);
     const SC X = x0 + (x1-x0)*SC(i)/SC(Nx-1);
     const SC Y = y0 + (y1-y0)*SC(j)/SC(Ny-1);
-    return (field==0 ? tt::mms_pnp_linear::phi_ex(X,Y)
-                     : tt::mms_pnp_linear::c_ex(X,Y));
+    return (field==0 ? multiphys::mms_pnp_linear::phi_ex(X,Y)
+                     : multiphys::mms_pnp_linear::c_ex(X,Y));
   };
 
   applyDirichlet_MonolithicNField_SetValue(*A_owned, b_owned.get(), Nx, Ny, nFields, NglobNodes, valueAtBoundary);
@@ -328,4 +328,4 @@ inline SystemAndExact buildLinearPNP_MMS_System_OverlapExported(
   return {A_owned, b_owned, xexact_owned};
 }
 
-} // namespace tt::pnp_linear
+} // namespace multiphys::pnp_linear

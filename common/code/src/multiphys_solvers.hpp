@@ -29,7 +29,7 @@
 #include <Teuchos_XMLParameterListHelpers.hpp>
 #include <fstream>
 
-namespace tt::solvers {
+namespace multiphys::solvers {
 
 enum class SolverChoice {
   Ifpack2SchwarzRILUK,
@@ -305,4 +305,4 @@ inline void solveWithTekoMonolithicAMG_GMRES(const Teko::BlockedLinearOp& blo,
   solveGMRES_RightPrec(Aop, b, x, precOp, maxIters, tol, /*explicitResidualTest=*/false);
 }
 
-} // namespace tt::solvers
+} // namespace multiphys::solvers

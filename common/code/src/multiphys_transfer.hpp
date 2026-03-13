@@ -15,7 +15,7 @@
 
 #include "multiphys_mesh.hpp"
 
-namespace tt {
+namespace multiphys {
 
 using mv_type = Tpetra::MultiVector<SC,LO,GO,NO>;
 using export_type = Tpetra::Export<LO,GO,NO>;
@@ -36,4 +36,4 @@ inline void exportMonolithicVector(const mv_type& xOverlap,
   xOwned.doExport(xOverlap, exporter, mode);
 }
 
-} // namespace tt
+} // namespace multiphys

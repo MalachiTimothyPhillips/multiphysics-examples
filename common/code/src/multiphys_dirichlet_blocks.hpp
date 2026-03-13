@@ -18,7 +18,7 @@
 #include "multiphys_mesh.hpp"
 #include "multiphys_dof.hpp"
 
-namespace tt {
+namespace multiphys {
 
 // Set a nodal-block matrix row to I on boundary rows (owned rows only).
 template<class SC_, class LO_, class GO_, class NO_>
@@ -104,11 +104,11 @@ void applyHomogeneousDirichletToMonolithicRHS2Field(Tpetra::MultiVector<SC_,LO_,
   for (LO_ l=0; l<nLocal; ++l) {
     const GO_ g = map->getGlobalElement(l);
     GO_ nodeG = (g >= NglobNodes ? g - NglobNodes : g);
-    if (!tt::isBoundaryNode((GO)nodeG, Nx, Ny)) continue;
+    if (!multiphys::isBoundaryNode((GO)nodeG, Nx, Ny)) continue;
 
     for (LO_ j=0; j<(LO_)b.getNumVectors(); ++j)
       b.replaceLocalValue(l, j, SC_(0));
   }
 }
 
-} // namespace tt
+} // namespace multiphys

@@ -13,7 +13,7 @@
 #include <Teuchos_Array.hpp>
 #include <Kokkos_Core.hpp>
 
-namespace tt {
+namespace multiphys {
 
 using SC = double;
 using LO = int;
@@ -119,4 +119,4 @@ inline CoordView buildCoordsStructured(const Teuchos::RCP<const map_type>& nodeM
   return coords;
 }
 
-} // namespace tt
+} // namespace multiphys

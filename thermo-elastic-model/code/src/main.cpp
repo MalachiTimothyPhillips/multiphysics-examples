@@ -116,7 +116,7 @@ discreteL2ErrorMonolithic3Field(const Tpetra::CrsMatrix<SC,LO,GO,NO>& M,
 int main(int argc, char** argv)
 {
   Tpetra::ScopeGuard scope(&argc, &argv);
-  using namespace tt;
+  using namespace multiphys;
 
   auto comm = Tpetra::getDefaultComm();
 
@@ -177,10 +177,10 @@ int main(int argc, char** argv)
   TEUCHOS_TEST_FOR_EXCEPTION(kappa <= 0.0, std::runtime_error, "kappa must be positive");
   TEUCHOS_TEST_FOR_EXCEPTION(rhoCp < 0.0, std::runtime_error, "rhoCp must be nonnegative");
 
-  tt::solvers::SolverChoice which = tt::solvers::parseSolverChoice(solverName);
+  multiphys::solvers::SolverChoice which = multiphys::solvers::parseSolverChoice(solverName);
 
   // ---- assemble block operators on owned map ----
-  tt::thermoelastic::Params p;
+  multiphys::thermoelastic::Params p;
   p.lambda = (SC)lambda;
   p.mu     = (SC)mu;
   p.kappa  = (SC)kappa;
@@ -190,11 +190,11 @@ int main(int argc, char** argv)
   p.beta   = (SC)beta;
   p.eta    = (SC)eta;
 
-  auto blks = tt::thermoelastic::buildThermoelasticBlocks_OverlapExported(Nx, Ny, x0,x1,y0,y1, p);
+  auto blks = multiphys::thermoelastic::buildThermoelasticBlocks_OverlapExported(Nx, Ny, x0,x1,y0,y1, p);
 
   // Also build a scalar mass matrix M for L2 errors (reuse existing Q1 code):
   // We can use buildKM_OverlapExported and just grab M; k values don't matter for M.
-  auto km_for_mass = tt::buildKM_OverlapExported(
+  auto km_for_mass = multiphys::buildKM_OverlapExported(
       Nx, Ny, x0,x1,y0,y1,
       [&](vec_type& v, const CoordView&){ v.putScalar(1.0); },
       [&](vec_type& v, const CoordView&){ v.putScalar(1.0); });
@@ -230,7 +230,7 @@ int main(int argc, char** argv)
   auto blockedCrs = Teuchos::make_rcp<BlockedCrsMatrix>(bloOp, Teuchos::null);
   blockedCrs->fillComplete();
   auto monolithicX = blockedCrs->Merge();
-  Teuchos::RCP<tt::crs_type> Amono = Xpetra::toTpetra(monolithicX);
+  Teuchos::RCP<multiphys::crs_type> Amono = Xpetra::toTpetra(monolithicX);
 
   if (comm->getRank()==0)
     std::cout << "Monolithic A nnz=" << Amono->getGlobalNumEntries() << "\n";
@@ -239,20 +239,20 @@ int main(int argc, char** argv)
   const GO NglobNodes = GO(Nx) * GO(Ny);
 
   auto ownedNodeMap = blks.Kxx->getRowMap();
-  auto ownedElemConn = tt::buildOwnedElementConnectivity(ownedNodeMap, Nx, Ny);
-  auto ownedCoords  = tt::buildCoordsStructured(ownedNodeMap, Nx, Ny, x0,x1,y0,y1);
+  auto ownedElemConn = multiphys::buildOwnedElementConnectivity(ownedNodeMap, Nx, Ny);
+  auto ownedCoords  = multiphys::buildCoordsStructured(ownedNodeMap, Nx, Ny, x0,x1,y0,y1);
 
-  auto overlapNodeMap = tt::buildOverlapNodeMap(ownedNodeMap, ownedElemConn);
-  auto coordsOverlap  = tt::buildCoordsStructured(overlapNodeMap, Nx, Ny, x0,x1,y0,y1);
+  auto overlapNodeMap = multiphys::buildOverlapNodeMap(ownedNodeMap, ownedElemConn);
+  auto coordsOverlap  = multiphys::buildCoordsStructured(overlapNodeMap, Nx, Ny, x0,x1,y0,y1);
 
   const int nFields = 3;
-  auto overlapMonoMap = tt::buildMonolithicMapNFieldFromNodeMap(overlapNodeMap, NglobNodes, nFields);
+  auto overlapMonoMap = multiphys::buildMonolithicMapNFieldFromNodeMap(overlapNodeMap, NglobNodes, nFields);
   auto ownedMonoMap   = Amono->getRowMap();
 
   // ---- MMS assembly on overlap monolithic map ----
   Tpetra::MultiVector<SC,LO,GO,NO> b_ov(overlapMonoMap, 1), xexact_ov(overlapMonoMap, 1);
 
-  tt::mms_te::assembleMonolithicRHS_andExact_onOverlap(
+  multiphys::mms_te::assembleMonolithicRHS_andExact_onOverlap(
       overlapNodeMap, overlapMonoMap, coordsOverlap, ownedElemConn,
       b_ov, xexact_ov, Nx, Ny,
       p.lambda, p.mu,
@@ -261,11 +261,11 @@ int main(int argc, char** argv)
 
   // ---- Export overlap -> owned ----
   Tpetra::MultiVector<SC,LO,GO,NO> b(ownedMonoMap, 1), xexact(ownedMonoMap, 1);
-  tt::exportMonolithicVector(b_ov, b, *overlapMonoMap, *ownedMonoMap, Tpetra::ADD);
-  tt::exportMonolithicVector(xexact_ov, xexact, *overlapMonoMap, *ownedMonoMap, Tpetra::INSERT);
+  multiphys::exportMonolithicVector(b_ov, b, *overlapMonoMap, *ownedMonoMap, Tpetra::ADD);
+  multiphys::exportMonolithicVector(xexact_ov, xexact, *overlapMonoMap, *ownedMonoMap, Tpetra::INSERT);
 
   // ---- Apply homogeneous Dirichlet (N-field generalized) ----
-  tt::applyHomogeneousDirichlet_MonolithicNField(*Amono, &b, Nx, Ny, nFields);
+  multiphys::applyHomogeneousDirichlet_MonolithicNField(*Amono, &b, Nx, Ny, nFields);
 
   auto Aop = Teuchos::rcp_dynamic_cast<Tpetra::Operator<SC,LO,GO,NO>>(Amono, true);
 
@@ -273,7 +273,7 @@ int main(int argc, char** argv)
   SC xcen = 0.5*(x0+x1);
   SC ycen = 0.5*(y0+y1);
   auto uMap = blks.Auu->getRowMap();
-  auto rbm = tt::buildRigidBodyModes2D(ownedNodeMap, uMap, ownedCoords, NglobNodes, xcen, ycen);
+  auto rbm = multiphys::buildRigidBodyModes2D(ownedNodeMap, uMap, ownedCoords, NglobNodes, xcen, ycen);
 
   // ---- Solve ----
   auto b_rcp      = Teuchos::rcpFromRef(b);
@@ -311,19 +311,19 @@ int main(int argc, char** argv)
   };
 
   switch (which) {
-    case tt::solvers::SolverChoice::Ifpack2SchwarzRILUK:
-      tt::solvers::solveWithIfpack2SchwarzRILUK_GMRES(Aop, b_rcp, x_rcp, maxIters, tol, solverXml);
+    case multiphys::solvers::SolverChoice::Ifpack2SchwarzRILUK:
+      multiphys::solvers::solveWithIfpack2SchwarzRILUK_GMRES(Aop, b_rcp, x_rcp, maxIters, tol, solverXml);
       report("Ifpack2 + GMRES:");
       break;
 
-    case tt::solvers::SolverChoice::TekoBGS:
-      tt::solvers::solveWithTekoBGS_GMRES(bloOp, b_rcp, x_rcp, maxIters, tol, solverXml, set_user_data);
+    case multiphys::solvers::SolverChoice::TekoBGS:
+      multiphys::solvers::solveWithTekoBGS_GMRES(bloOp, b_rcp, x_rcp, maxIters, tol, solverXml, set_user_data);
       report("Block Gauss-Seidel + GMRES:");
       break;
 
     // TODO: we should be able to consolidate this code path with the one above, provided the user gives params
-    case tt::solvers::SolverChoice::TekoMonolithicAMG:
-      tt::solvers::solveWithTekoMonolithicAMG_GMRES(bloOp, b_rcp, x_rcp, maxIters, tol, solverXml, set_user_data_monolithic);
+    case multiphys::solvers::SolverChoice::TekoMonolithicAMG:
+      multiphys::solvers::solveWithTekoMonolithicAMG_GMRES(bloOp, b_rcp, x_rcp, maxIters, tol, solverXml, set_user_data_monolithic);
       report("Monolithic AMG + GMRES:");
       break;
   }

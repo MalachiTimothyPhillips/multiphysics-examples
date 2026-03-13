@@ -15,7 +15,7 @@
 
 #include "multiphys_mesh.hpp"
 
-namespace tt {
+namespace multiphys {
 
 // Build 2D elasticity rigid body modes (RBMs) as a Tpetra::MultiVector with 3 columns.
 // Ordering in uMap (2-field monolithic): ux(nodeG), uy(nodeG + NglobNodes).
@@ -82,4 +82,4 @@ buildRigidBodyModes2D(const Teuchos::RCP<const map_type>& nodeMap,
   return ns;
 }
 
-} // namespace tt
+} // namespace multiphys

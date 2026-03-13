@@ -24,10 +24,10 @@
 #include "multiphys_dof.hpp"
 #include "multiphys_dirichlet_blocks.hpp"
 
-namespace tt::thermoelastic {
+namespace multiphys::thermoelastic {
 
-using crs_type    = tt::crs_type;
-using export_type = tt::export_type;
+using crs_type    = multiphys::crs_type;
+using export_type = multiphys::export_type;
 
 // ---------------- Parameters ----------------
 struct Params {
@@ -74,11 +74,11 @@ struct BlocksOwned {
 };
 
 // ---------------- Internal helpers ----------------
-inline Teuchos::RCP<tt::graph_type>
+inline Teuchos::RCP<multiphys::graph_type>
 buildNodeGraph(const Teuchos::RCP<const map_type>& overlapNodeMap,
                const ConnView& ownedElemConn)
 {
-  return tt::buildQ1GraphFromOwnedElements(overlapNodeMap, ownedElemConn);
+  return multiphys::buildQ1GraphFromOwnedElements(overlapNodeMap, ownedElemConn);
 }
 
 inline Teuchos::RCP<crs_type>
@@ -86,7 +86,7 @@ exportToOwned(const Teuchos::RCP<const crs_type>& Aov,
               const Teuchos::RCP<const map_type>& ownedMap,
               const Teuchos::RCP<const map_type>& overlapMap)
 {
-  return tt::exportToOwned(Aov, ownedMap, overlapMap);
+  return multiphys::exportToOwned(Aov, ownedMap, overlapMap);
 }
 
 inline size_t nnzPerRowUQ1Estimate()   { return 18; } // 2 components x ~9 neighbors
@@ -138,7 +138,7 @@ buildAuu_from_scalar_blocks(const Teuchos::RCP<const map_type>& ownedNodeMap,
                             const Teuchos::RCP<crs_type>& Kyx,
                             const Teuchos::RCP<crs_type>& Kyy)
 {
-  auto uMap = tt::buildMonolithicMapNFieldFromNodeMap(ownedNodeMap, NglobNodes, /*nFields=*/2);
+  auto uMap = multiphys::buildMonolithicMapNFieldFromNodeMap(ownedNodeMap, NglobNodes, /*nFields=*/2);
 
   auto Auu = Teuchos::rcp(new crs_type(uMap, nnzPerRowUQ1Estimate()));
   Auu->resumeFill();
@@ -160,7 +160,7 @@ buildAuT_from_scalar_blocks(const Teuchos::RCP<const map_type>& ownedNodeMap,
                             const Teuchos::RCP<crs_type>& KxT,
                             const Teuchos::RCP<crs_type>& KyT)
 {
-  auto uMap = tt::buildMonolithicMapNFieldFromNodeMap(ownedNodeMap, NglobNodes, /*nFields=*/2);
+  auto uMap = multiphys::buildMonolithicMapNFieldFromNodeMap(ownedNodeMap, NglobNodes, /*nFields=*/2);
   auto tMap = ownedNodeMap;
 
   auto AuT = Teuchos::rcp(new crs_type(uMap, nnzPerRowRectEstimate()));
@@ -182,7 +182,7 @@ buildATu_from_scalar_blocks(const Teuchos::RCP<const map_type>& ownedNodeMap,
                             const Teuchos::RCP<crs_type>& KTx,
                             const Teuchos::RCP<crs_type>& KTy)
 {
-  auto uMap = tt::buildMonolithicMapNFieldFromNodeMap(ownedNodeMap, NglobNodes, /*nFields=*/2);
+  auto uMap = multiphys::buildMonolithicMapNFieldFromNodeMap(ownedNodeMap, NglobNodes, /*nFields=*/2);
   auto tMap = ownedNodeMap;
 
   auto ATu = Teuchos::rcp(new crs_type(tMap, nnzPerRowRectEstimate()));
@@ -229,7 +229,7 @@ inline void assemble_element_matrices_Q1(
     const SC wq = 1.0;
 
     SC N[4], dN_dxi[4], dN_deta[4];
-    tt::shapeQ1(xi,eta,N,dN_dxi,dN_deta);
+    multiphys::shapeQ1(xi,eta,N,dN_dxi,dN_deta);
 
     SC J[2][2] = {{0,0},{0,0}};
     for (int aN=0;aN<4;++aN) {
@@ -240,7 +240,7 @@ inline void assemble_element_matrices_Q1(
     }
 
     SC invJ[2][2], detJ=0.0;
-    tt::invert2x2(J, invJ, detJ);
+    multiphys::invert2x2(J, invJ, detJ);
     const SC dV = wq*detJ;
 
     SC dN_dx[4], dN_dy[4];
@@ -516,7 +516,7 @@ buildAuu_fromGraphAndBlocks(const Teuchos::RCP<const map_type>& ownedNodeMap,
                             const Teuchos::RCP<const crs_type>& Kyx,
                             const Teuchos::RCP<const crs_type>& Kyy)
 {
-  auto uMap = tt::buildMonolithicMapNFieldFromNodeMap(ownedNodeMap, NglobNodes, 2);
+  auto uMap = multiphys::buildMonolithicMapNFieldFromNodeMap(ownedNodeMap, NglobNodes, 2);
   auto G = buildGraphAuu(ownedNodeMap, NglobNodes, Kxx, Kxy, Kyx, Kyy, uMap);
 
   auto Auu = Teuchos::rcp(new crs_type(G));
@@ -588,7 +588,7 @@ buildAuT_fromGraphAndBlocks(const Teuchos::RCP<const map_type>& ownedNodeMap,
                             const Teuchos::RCP<const crs_type>& KxT,
                             const Teuchos::RCP<const crs_type>& KyT)
 {
-  auto uMap = tt::buildMonolithicMapNFieldFromNodeMap(ownedNodeMap, NglobNodes, /*numFields=*/2);
+  auto uMap = multiphys::buildMonolithicMapNFieldFromNodeMap(ownedNodeMap, NglobNodes, /*numFields=*/2);
   auto tMap = ownedNodeMap;
 
   // Build static graph
@@ -655,7 +655,7 @@ buildATu_fromGraphAndBlocks(const Teuchos::RCP<const map_type>& ownedNodeMap,
                             const Teuchos::RCP<const crs_type>& KTx,
                             const Teuchos::RCP<const crs_type>& KTy)
 {
-  auto uMap = tt::buildMonolithicMapNFieldFromNodeMap(ownedNodeMap, NglobNodes, /*numFields=*/2);
+  auto uMap = multiphys::buildMonolithicMapNFieldFromNodeMap(ownedNodeMap, NglobNodes, /*numFields=*/2);
   auto tMap = ownedNodeMap;
 
   // Build static graph
@@ -732,20 +732,20 @@ void applyHomogeneousDirichlet_ThermoelasticScalarBlocks(
     Teuchos::ArrayView<GO_> boundaryNodeGIDs)
 {
   // Mechanics rows: ux, uy
-  tt::applyDirichletRows_DiagBlock(Kxx, boundaryNodeGIDs);
-  tt::applyDirichletRows_DiagBlock(Kyy, boundaryNodeGIDs);
+  multiphys::applyDirichletRows_DiagBlock(Kxx, boundaryNodeGIDs);
+  multiphys::applyDirichletRows_DiagBlock(Kyy, boundaryNodeGIDs);
 
-  tt::applyDirichletRows_OffDiagBlock(Kxy, boundaryNodeGIDs);
-  tt::applyDirichletRows_OffDiagBlock(Kyx, boundaryNodeGIDs);
+  multiphys::applyDirichletRows_OffDiagBlock(Kxy, boundaryNodeGIDs);
+  multiphys::applyDirichletRows_OffDiagBlock(Kyx, boundaryNodeGIDs);
 
-  tt::applyDirichletRows_OffDiagBlock(KxT, boundaryNodeGIDs);
-  tt::applyDirichletRows_OffDiagBlock(KyT, boundaryNodeGIDs);
+  multiphys::applyDirichletRows_OffDiagBlock(KxT, boundaryNodeGIDs);
+  multiphys::applyDirichletRows_OffDiagBlock(KyT, boundaryNodeGIDs);
 
   // Heat rows: T
-  tt::applyDirichletRows_DiagBlock(AT, boundaryNodeGIDs);
+  multiphys::applyDirichletRows_DiagBlock(AT, boundaryNodeGIDs);
 
-  tt::applyDirichletRows_OffDiagBlock(KTx, boundaryNodeGIDs);
-  tt::applyDirichletRows_OffDiagBlock(KTy, boundaryNodeGIDs);
+  multiphys::applyDirichletRows_OffDiagBlock(KTx, boundaryNodeGIDs);
+  multiphys::applyDirichletRows_OffDiagBlock(KTy, boundaryNodeGIDs);
 }
 
 // ---------------- Main builder: overlap assembly + export to owned + explicit Auu/AuT/ATu ----------------
@@ -757,9 +757,9 @@ inline BlocksOwned buildThermoelasticBlocks_OverlapExported(
   const GO N = GO(Nx)*GO(Ny);
   auto ownedMap = Teuchos::rcp(new map_type(N, 0, comm));
 
-  ConnView ownedElemConn = tt::buildOwnedElementConnectivity(ownedMap, Nx, Ny);
-  auto overlapMap = tt::buildOverlapNodeMap(ownedMap, ownedElemConn);
-  CoordView coords = tt::buildCoordsStructured(overlapMap, Nx, Ny, x0,x1,y0,y1);
+  ConnView ownedElemConn = multiphys::buildOwnedElementConnectivity(ownedMap, Nx, Ny);
+  auto overlapMap = multiphys::buildOverlapNodeMap(ownedMap, ownedElemConn);
+  CoordView coords = multiphys::buildCoordsStructured(overlapMap, Nx, Ny, x0,x1,y0,y1);
 
   auto G_ov = buildNodeGraph(overlapMap, ownedElemConn);
 
@@ -855,7 +855,7 @@ inline BlocksOwned buildThermoelasticBlocks_OverlapExported(
   out.KTx = exportToOwned(KTx_ov, ownedMap, overlapMap);
   out.KTy = exportToOwned(KTy_ov, ownedMap, overlapMap);
 
-  auto boundary = tt::boundaryNodeGIDs(Nx, Ny);
+  auto boundary = multiphys::boundaryNodeGIDs(Nx, Ny);
 
   applyHomogeneousDirichlet_ThermoelasticScalarBlocks(
       *out.Kxx, *out.Kxy, *out.Kyx, *out.Kyy,
@@ -873,4 +873,4 @@ inline BlocksOwned buildThermoelasticBlocks_OverlapExported(
   return out;
 }
 
-} // namespace tt::thermoelastic
+} // namespace multiphys::thermoelastic
