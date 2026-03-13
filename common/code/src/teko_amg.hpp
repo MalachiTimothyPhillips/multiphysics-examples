@@ -18,7 +18,7 @@
 #include "Teko_JacobiPreconditionerFactory.hpp"
 #include "Teko_GaussSeidelPreconditionerFactory.hpp"
 
-namespace experimental
+namespace multiphys
 {
 
 class BlockAMGPreconditionerFactory : public Teko::BlockPreconditionerFactory

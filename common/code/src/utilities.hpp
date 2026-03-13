@@ -15,7 +15,7 @@
 #include "Teko_TpetraOperatorWrapper.hpp"
 #include "Teko_TpetraThyraConverter.hpp"
 
-namespace experimental
+namespace util
 {
 using Matrix = Tpetra::CrsMatrix<Teko::ST, Teko::LO, Teko::GO, Teko::NT>;
 Teuchos::RCP<const Tpetra::CrsMatrix<Teko::ST, Teko::LO, Teko::GO, Teko::NT>>
@@ -34,8 +34,6 @@ Teuchos::RCP<Tpetra::Map<>> convert_block_range_to_tpetra_range(
     Teuchos::RCP<const Thyra::ProductVectorSpaceBase<Teko::ST>> range,
     Teuchos::RCP<const Teuchos::Comm<int>> comm);
 
-} // end namespace experimental
-
 template <typename Scalar, typename LocalOrdinal, typename GlobalOrdinal, typename Node>
 Teuchos::RCP<Thyra::TpetraLinearOp<Scalar, LocalOrdinal, GlobalOrdinal, Node>>
 asThyraOp(const Teuchos::RCP<Tpetra::Operator<Scalar, LocalOrdinal, GlobalOrdinal, Node>> &
@@ -51,3 +49,5 @@ asThyraOp(const Teuchos::RCP<Tpetra::Operator<Scalar, LocalOrdinal, GlobalOrdina
           tpetraOperator->getDomainMap()),
       tpetraOperator);
 }
+
+} // end namespace experimental

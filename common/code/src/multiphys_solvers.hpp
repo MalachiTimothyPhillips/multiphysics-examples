@@ -23,7 +23,7 @@
 #include "Teko_PreconditionerFactory.hpp"
 #include "Teko_CloneFactory.hpp"
 
-#include "teko_amg.hpp" // experimental::BlockAMGPreconditionerFactory
+#include "teko_amg.hpp" // multiphys::BlockAMGPreconditionerFactory
 
 #include <Teuchos_CommandLineProcessor.hpp>
 #include <Teuchos_XMLParameterListHelpers.hpp>
@@ -274,7 +274,7 @@ inline void ensureBlockAMGFactoryRegistered()
   if (registered) return;
 
   Teuchos::RCP<Teko::Cloneable> clone =
-      Teuchos::rcp(new Teko::AutoClone<experimental::BlockAMGPreconditionerFactory>());
+      Teuchos::rcp(new Teko::AutoClone<multiphys::BlockAMGPreconditionerFactory>());
   Teko::PreconditionerFactory::addPreconditionerFactory("Block AMG", clone);
 
   registered = true;

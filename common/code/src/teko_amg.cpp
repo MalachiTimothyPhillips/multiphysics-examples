@@ -23,7 +23,7 @@
 #include "Teko_BlockDiagonalInverseOp.hpp"
 #include "Teuchos_StackedTimer.hpp"
 
-namespace experimental
+namespace multiphys
 {
 
 using Teko::GO;
@@ -149,11 +149,11 @@ Teko::LinearOp BlockAMGPreconditionerFactory::buildPreconditionerOperator(
   {
     if (A_tpetra)
     {
-      experimental::update_block_matrix_to_crs_matrix(blo, A_tpetra);
+      util::update_block_matrix_to_crs_matrix(blo, A_tpetra);
     }
     else
     {
-      A_tpetra = experimental::convert_block_matrix_to_crs_matrix(blo);
+      A_tpetra = util::convert_block_matrix_to_crs_matrix(blo);
     }
   }
   else

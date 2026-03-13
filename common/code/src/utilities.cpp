@@ -12,7 +12,7 @@
 #include "KokkosSparse_SortCrs.hpp"
 #include <stack>
 
-namespace experimental
+namespace util
 {
 
 Teuchos::RCP<const Tpetra::CrsMatrix<Teko::ST, Teko::LO, Teko::GO, Teko::NT>>
