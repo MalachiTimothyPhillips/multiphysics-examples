@@ -1,3 +1,12 @@
+/*--------------------------------------------------------------------*/
+/*    Copyright 2002 - 2008, 2010, 2011 National Technology &         */
+/*    Engineering Solutions of Sandia, LLC (NTESS). Under the terms   */
+/*    of Contract DE-NA0003525 with NTESS, there is a                 */
+/*    non-exclusive license for use of this work by or on behalf      */
+/*    of the U.S. Government.  Export of this program may require     */
+/*    a license from the United States Government.                    */
+/*--------------------------------------------------------------------*/
+
 // main_pnp.cpp (linear-drift Poisson + Nernst–Planck MMS benchmark, 2-field blocked/monolithic)
 //
 // Unknown ordering (monolithic 2-field, field-blocked by node offset):
