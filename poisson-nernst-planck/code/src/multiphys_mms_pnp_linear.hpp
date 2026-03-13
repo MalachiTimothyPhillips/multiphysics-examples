@@ -1,8 +1,8 @@
-// tt_mms_pnp_linear.hpp
+// multiphys_mms_pnp_linear.hpp
 #pragma once
 
 #include <cmath>
-#include "tt_mesh.hpp"
+#include "multiphys_mesh.hpp"
 
 namespace tt::mms_pnp_linear {
 

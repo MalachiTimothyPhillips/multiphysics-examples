@@ -4,8 +4,8 @@
 #include <Teuchos_RCP.hpp>
 #include <cmath>
 
-#include "tt_mesh.hpp"
-#include "tt_q1_assembly.hpp" // for shapeQ1/invert2x2
+#include "multiphys_mesh.hpp"
+#include "multiphys_q1_assembly.hpp" // for shapeQ1/invert2x2
 
 namespace tt::mms {
 

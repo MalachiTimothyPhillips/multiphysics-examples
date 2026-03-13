@@ -5,8 +5,8 @@
 #include <Teuchos_OrdinalTraits.hpp>
 #include <cmath>
 
-#include "tt_mesh.hpp"
-#include "tt_q1_assembly.hpp" // shapeQ1/invert2x2
+#include "multiphys_mesh.hpp"
+#include "multiphys_q1_assembly.hpp" // shapeQ1/invert2x2
 
 namespace tt::mms_te {
 

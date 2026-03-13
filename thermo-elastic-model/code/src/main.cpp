@@ -13,16 +13,16 @@
 
 #include "Teko_Utilities.hpp"
 
-#include "tt_mesh.hpp"
-#include "tt_q1_assembly.hpp"
-#include "tt_transfer.hpp"
-#include "tt_solvers.hpp"
+#include "multiphys_mesh.hpp"
+#include "multiphys_q1_assembly.hpp"
+#include "multiphys_transfer.hpp"
+#include "multiphys_solvers.hpp"
 
-#include "tt_dof.hpp"
-#include "tt_dirichlet.hpp"
-#include "tt_thermoelastic_q1.hpp"
-#include "tt_mms_thermoelastic.hpp"
-#include "tt_nullspace.hpp"
+#include "multiphys_dof.hpp"
+#include "multiphys_dirichlet.hpp"
+#include "multiphys_thermoelastic_q1.hpp"
+#include "multiphys_mms_thermoelastic.hpp"
+#include "multiphys_nullspace.hpp"
 
 #include <Teuchos_CommandLineProcessor.hpp>
 

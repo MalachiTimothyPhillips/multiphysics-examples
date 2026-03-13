@@ -1,4 +1,4 @@
-// tt_pnp_linear_q1.hpp
+// multiphys_pnp_linear_q1.hpp
 #pragma once
 
 #include <Tpetra_CrsMatrix.hpp>
@@ -10,10 +10,10 @@
 #include <vector>
 #include <stdexcept>
 
-#include "tt_mesh.hpp"
-#include "tt_q1_assembly.hpp"
-#include "tt_dof.hpp"
-#include "tt_transfer.hpp"
+#include "multiphys_mesh.hpp"
+#include "multiphys_q1_assembly.hpp"
+#include "multiphys_dof.hpp"
+#include "multiphys_transfer.hpp"
 
 namespace tt::pnp_linear {
 

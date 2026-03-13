@@ -6,7 +6,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "tt_mesh.hpp"
+#include "multiphys_mesh.hpp"
 
 namespace tt {
 

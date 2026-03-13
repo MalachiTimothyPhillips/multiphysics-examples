@@ -3,7 +3,7 @@
 #include <Tpetra_Map.hpp>
 #include <Teuchos_RCP.hpp>
 
-#include "tt_mesh.hpp"
+#include "multiphys_mesh.hpp"
 
 namespace tt {
 

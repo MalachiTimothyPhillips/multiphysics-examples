@@ -12,7 +12,7 @@ file(GLOB COMMON_SRC CONFIGURE_DEPENDS
 
 target_sources(demo_common PRIVATE ${COMMON_SRC})
 
-# Export include path so downstream can do: #include "tt_mesh.hpp"
+# Export include path so downstream can do: #include "multiphys_mesh.hpp"
 target_include_directories(demo_common
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src

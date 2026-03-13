@@ -4,7 +4,7 @@
 #include <Tpetra_MultiVector.hpp>
 #include <Teuchos_RCP.hpp>
 
-#include "tt_mesh.hpp"
+#include "multiphys_mesh.hpp"
 
 namespace tt {
 

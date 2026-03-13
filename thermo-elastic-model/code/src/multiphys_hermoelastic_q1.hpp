@@ -9,11 +9,11 @@
 #include <cmath>
 #include <vector>
 
-#include "tt_mesh.hpp"
-#include "tt_q1_assembly.hpp"
+#include "multiphys_mesh.hpp"
+#include "multiphys_q1_assembly.hpp"
 
-#include "tt_dof.hpp"
-#include "tt_dirichlet_blocks.hpp"
+#include "multiphys_dof.hpp"
+#include "multiphys_dirichlet_blocks.hpp"
 
 namespace tt::thermoelastic {
 

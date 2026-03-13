@@ -6,8 +6,8 @@
 #include <Teuchos_OrdinalTraits.hpp>
 #include <algorithm>
 
-#include "tt_mesh.hpp"
-#include "tt_dof.hpp"
+#include "multiphys_mesh.hpp"
+#include "multiphys_dof.hpp"
 
 namespace tt {
 

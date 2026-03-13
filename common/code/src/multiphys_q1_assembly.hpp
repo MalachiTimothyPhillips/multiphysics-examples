@@ -8,7 +8,7 @@
 #include <Kokkos_Core.hpp>
 #include <cmath>
 
-#include "tt_mesh.hpp"
+#include "multiphys_mesh.hpp"
 
 namespace tt {
 
