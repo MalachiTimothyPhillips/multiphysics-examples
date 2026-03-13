@@ -7,8 +7,8 @@
 /*    a license from the United States Government.                    */
 /*--------------------------------------------------------------------*/
 
-#include "Solv_TekoAMG.hpp"
-#include "Solv_TekoUtilities.hpp"
+#include "teko_amg.hpp"
+#include "utilities.hpp"
 #include "Teko_ImplicitLinearOp.hpp"
 #include "Teko_BlockImplicitLinearOp.hpp"
 #include <Tpetra_Operator.hpp>

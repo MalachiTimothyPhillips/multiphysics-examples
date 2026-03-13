@@ -7,8 +7,7 @@
 /*    a license from the United States Government.                    */
 /*--------------------------------------------------------------------*/
 
-#ifndef TFTK_TFTK_LINSOLV_LINSOLV_SOLV_TEKO_UTILITIES
-#define TFTK_TFTK_LINSOLV_LINSOLV_SOLV_TEKO_UTILITIES
+#pragma once
 
 #include "Teko_BlockedTpetraOperator.hpp"
 #include "Teko_Utilities.hpp"
@@ -52,5 +51,3 @@ asThyraOp(const Teuchos::RCP<Tpetra::Operator<Scalar, LocalOrdinal, GlobalOrdina
           tpetraOperator->getDomainMap()),
       tpetraOperator);
 }
-
-#endif

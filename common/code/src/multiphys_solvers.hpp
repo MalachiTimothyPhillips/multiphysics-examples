@@ -14,7 +14,7 @@
 #include "Teko_PreconditionerFactory.hpp"
 #include "Teko_CloneFactory.hpp"
 
-#include "Solv_TekoAMG.hpp" // experimental::BlockAMGPreconditionerFactory
+#include "teko_amg.hpp" // experimental::BlockAMGPreconditionerFactory
 
 #include <Teuchos_CommandLineProcessor.hpp>
 #include <Teuchos_XMLParameterListHelpers.hpp>

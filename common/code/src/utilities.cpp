@@ -7,7 +7,7 @@
 /*    a license from the United States Government.                    */
 /*--------------------------------------------------------------------*/
 
-#include "Solv_TekoUtilities.hpp"
+#include "utilities.hpp"
 #include "Tpetra_Details_makeColMap_decl.hpp"
 #include "KokkosSparse_SortCrs.hpp"
 #include <stack>

@@ -20,7 +20,7 @@
 #include "Stratimikos_DefaultLinearSolverBuilder.hpp"
 #include "Stratimikos_MueLuHelpers.hpp"
 
-#include "Solv_TekoAMG.hpp"
+#include "teko_amg.hpp"
 
 #include "multiphys_mesh.hpp"
 #include "multiphys_q1_assembly.hpp"
