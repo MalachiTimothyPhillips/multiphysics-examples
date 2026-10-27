@@ -39,6 +39,7 @@
 #include "multiphys_transfer.hpp"
 #include "multiphys_solvers.hpp"
 #include "multiphys_dirichlet_blocks.hpp"
+#include "multiphys_field_export.hpp"
 
 #include <Teuchos_CommandLineProcessor.hpp>
 
@@ -150,6 +151,9 @@ int main(int argc, char** argv)
 
   std::string solverName = "ifpack2";
   std::string solverXml  = "";
+  std::string outputPrefix = "";
+  bool writeCsv = false;
+  bool writeVtu = false;
   int maxIters = 200;
   double tol = 1e-10;
 
@@ -157,18 +161,24 @@ int main(int argc, char** argv)
   clp.setOption("Nx", &Nx, "Number of nodes in x direction (structured grid)");
   clp.setOption("Ny", &Ny, "Number of nodes in y direction (structured grid)");
   clp.setOption("g",  &g,  "Coupling coefficient");
-  
+
   clp.setOption("solver", &solverName,
                 "Solver to run: ifpack2 | teko-bgs | teko-amg");
   clp.setOption("solver-xml", &solverXml,
                 "Optional XML file to override the solver parameter list for the chosen solver");
+  clp.setOption("output-prefix", &outputPrefix,
+                "Optional output prefix for solved-field export (.csv/.vtu)");
+  clp.setOption("write-csv", "no-write-csv", &writeCsv,
+                "Write solved nodal fields to CSV on rank 0");
+  clp.setOption("write-vtu", "no-write-vtu", &writeVtu,
+                "Write solved nodal fields to VTU on rank 0");
   clp.setOption("max-iters", &maxIters, "GMRES maximum iterations");
   clp.setOption("tol", &tol, "GMRES convergence tolerance");
-  
+
   auto rc = clp.parse(argc, argv);
   if (rc != Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL)
     return (rc == Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED ? 0 : 1);
-  
+
   // sanity checks
   TEUCHOS_TEST_FOR_EXCEPTION(Nx < 2 || Ny < 2, std::runtime_error, "Nx and Ny must be >= 2");
 
@@ -198,7 +208,7 @@ int main(int argc, char** argv)
   auto A21 = Teuchos::rcp(new crs_t(*km.M, Teuchos::DataAccess::Copy));
   A12->scale(-g); A21->scale(-g);
 
-  // Apply boundary conditions 
+  // Apply boundary conditions
   auto boundary = multiphys::boundaryNodeGIDs(Nx, Ny);
 
   multiphys::applyDirichletRows_DiagBlock(*A11, boundary());
@@ -273,12 +283,12 @@ int main(int argc, char** argv)
   auto b_rcp = Teuchos::rcpFromRef(b);
   auto x_rcp = Teuchos::make_rcp<Tpetra::MultiVector<SC,LO,GO,NO>>(ownedMonoMap, 1);
   auto xexact_rcp = Teuchos::rcpFromRef(xexact);
-  
+
   // reporting helper (reuse your discrete L2)
   auto report = [&](const std::string& label){
     auto res = explicitResidualNorm2(*Aop, *x_rcp, *b_rcp);
     auto l2  = discreteL2ErrorMonolithic2Field(*km.M, *x_rcp, *xexact_rcp);
-  
+
     if (comm->getRank()==0) {
       std::cout << label
                 << "  resid=" << res[0]
@@ -287,7 +297,7 @@ int main(int argc, char** argv)
                 << "  L2=" << l2.combined << "\n";
     }
   };
-  
+
   x_rcp->putScalar(0.0);
 
   switch (which) {
@@ -295,17 +305,29 @@ int main(int argc, char** argv)
       multiphys::solvers::solveWithIfpack2SchwarzRILUK_GMRES(Aop, b_rcp, x_rcp, maxIters, tol, solverXml);
       report("Ifpack2 + GMRES:");
       break;
-  
+
     case multiphys::solvers::SolverChoice::TekoBGS:
       multiphys::solvers::solveWithTekoBGS_GMRES(bloOp, b_rcp, x_rcp, maxIters, tol, solverXml);
       report("Block Gauss-Seidel + GMRES:");
       break;
-  
+
     case multiphys::solvers::SolverChoice::TekoMonolithicAMG:
       multiphys::solvers::solveWithTekoMonolithicAMG_GMRES(bloOp, b_rcp, x_rcp, maxIters, tol, solverXml);
       report("Monolithic AMG + GMRES:");
       break;
   }
+
+  multiphys::FieldExportOptions exportOptions;
+  exportOptions.outputPrefix = outputPrefix;
+  exportOptions.writeCsv = writeCsv;
+  exportOptions.writeVtu = writeVtu;
+
+  if (exportOptions.outputPrefix.empty() && (exportOptions.writeCsv || exportOptions.writeVtu))
+    exportOptions.outputPrefix = "two-temperature-solution";
+
+  multiphys::exportStructuredMonolithicFields(*x_rcp, *ownedNodeMap,
+                                              Nx, Ny, x0, x1, y0, y1,
+                                              2, {"Te", "Tl"}, exportOptions);
 
   return 0;
 }

@@ -19,7 +19,12 @@ target_include_directories(demo_common
 )
 
 # Trilinos usage: prefer imported target if available, else fall back
-find_package(Trilinos REQUIRED)
+# Support either an installed Trilinos package or a local build tree passed via Trilinos_DIR.
+if(DEFINED Trilinos_DIR AND EXISTS "${Trilinos_DIR}/TrilinosConfig.cmake")
+  include("${Trilinos_DIR}/TrilinosConfig.cmake")
+else()
+  find_package(Trilinos REQUIRED)
+endif()
 
 target_include_directories(demo_common PUBLIC
   ${Trilinos_INCLUDE_DIRS}

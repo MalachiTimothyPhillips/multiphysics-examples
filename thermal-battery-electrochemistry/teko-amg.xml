@@ -1,0 +1,75 @@
+<ParameterList>
+  <ParameterList name="myInverse">
+    <Parameter name="Type" type="string" value="Block AMG"/>
+
+    <ParameterList name="AMG Settings">
+      <Parameter name="verbosity" type="string" value="timings"/>
+      <Parameter name="combine: useMaxLevels" type="bool" value="true"/>
+      <Parameter name="smoother: type" type="string" value="teko"/>
+
+      <ParameterList name="subblockList0">
+        <Parameter name="verbosity" type="string" value="timings"/>
+        <Parameter name="coarse: max size" type="int" value="1000"/>
+        <Parameter name="aggregation: type" type="string" value="uncoupled"/>
+        <Parameter name="aggregation: drop scheme" type="string" value="distance laplacian"/>
+        <Parameter name="aggregation: distance laplacian metric" type="string" value="material"/>
+        <Parameter name="aggregation: distance laplacian algo" type="string" value="default"/>
+        <Parameter name="aggregation: drop tol" type="double" value="0.08"/>
+        <Parameter name="aggregation: dropping may create Dirichlet" type="bool" value="false"/>
+        <Parameter name="tentative: calculate qr" type="bool" value="false"/>
+        <Parameter name="sa: use rowsumabs diagonal scaling" type="bool" value="true"/>
+        <Parameter name="smoother: type" type="string" value="none"/>
+      </ParameterList>
+
+      <ParameterList name="subblockList1">
+        <Parameter name="verbosity" type="string" value="timings"/>
+        <Parameter name="coarse: max size" type="int" value="1000"/>
+        <Parameter name="aggregation: type" type="string" value="uncoupled"/>
+        <Parameter name="aggregation: drop scheme" type="string" value="distance laplacian"/>
+        <Parameter name="aggregation: distance laplacian metric" type="string" value="material"/>
+        <Parameter name="aggregation: distance laplacian algo" type="string" value="default"/>
+        <Parameter name="aggregation: drop tol" type="double" value="0.08"/>
+        <Parameter name="aggregation: dropping may create Dirichlet" type="bool" value="false"/>
+        <Parameter name="tentative: calculate qr" type="bool" value="false"/>
+        <Parameter name="sa: use rowsumabs diagonal scaling" type="bool" value="true"/>
+        <Parameter name="smoother: type" type="string" value="none"/>
+      </ParameterList>
+
+      <ParameterList name="smoother: params">
+        <Parameter name="Inverse Type" type="string" value="bgs"/>
+
+        <ParameterList name="Inverse Factory Library">
+          <ParameterList name="bgs">
+            <Parameter name="Type" type="string" value="Block Gauss-Seidel"/>
+            <Parameter name="Inverse Type 1" type="string" value="Chebyshev_1"/>
+            <Parameter name="Inverse Type 2" type="string" value="Chebyshev_2"/>
+          </ParameterList>
+
+          <ParameterList name="Chebyshev_1">
+            <Parameter name="Type" type="string" value="Ifpack2"/>
+            <Parameter name="Prec Type" type="string" value="CHEBYSHEV"/>
+            <ParameterList name="Ifpack2 Settings">
+              <Parameter name="chebyshev: degree" type="int" value="4"/>
+              <Parameter name="chebyshev: ratio eigenvalue" type="double" value="20.0"/>
+              <Parameter name="chebyshev: min eigenvalue" type="double" value="1.0"/>
+              <Parameter name="chebyshev: zero starting solution" type="bool" value="true"/>
+              <Parameter name="chebyshev: eigenvalue max iterations" type="int" value="15"/>
+            </ParameterList>
+          </ParameterList>
+
+          <ParameterList name="Chebyshev_2">
+            <Parameter name="Type" type="string" value="Ifpack2"/>
+            <Parameter name="Prec Type" type="string" value="CHEBYSHEV"/>
+            <ParameterList name="Ifpack2 Settings">
+              <Parameter name="chebyshev: degree" type="int" value="4"/>
+              <Parameter name="chebyshev: ratio eigenvalue" type="double" value="20.0"/>
+              <Parameter name="chebyshev: min eigenvalue" type="double" value="1.0"/>
+              <Parameter name="chebyshev: zero starting solution" type="bool" value="true"/>
+              <Parameter name="chebyshev: eigenvalue max iterations" type="int" value="15"/>
+            </ParameterList>
+          </ParameterList>
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
+  </ParameterList>
+</ParameterList>

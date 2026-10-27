@@ -26,6 +26,7 @@
 #include "multiphys_q1_assembly.hpp"
 #include "multiphys_transfer.hpp"
 #include "multiphys_solvers.hpp"
+#include "multiphys_field_export.hpp"
 
 #include "multiphys_dof.hpp"
 #include "multiphys_dirichlet.hpp"
@@ -141,6 +142,9 @@ int main(int argc, char** argv)
   // ---- solver defaults ----
   std::string solverName = "ifpack2";
   std::string solverXml  = "";
+  std::string outputPrefix = "";
+  bool writeCsv = false;
+  bool writeVtu = false;
   int maxIters = 200;
   double tol = 1e-10;
 
@@ -164,6 +168,12 @@ int main(int argc, char** argv)
   clp.setOption("solver", &solverName, "Solver to run: ifpack2 | teko-bgs | teko-amg");
   clp.setOption("solver-xml", &solverXml,
                 "Optional XML file to override the solver parameter list for the chosen solver");
+  clp.setOption("output-prefix", &outputPrefix,
+                "Optional output prefix for solved-field export (.csv/.vtu)");
+  clp.setOption("write-csv", "no-write-csv", &writeCsv,
+                "Write solved nodal fields to CSV on rank 0");
+  clp.setOption("write-vtu", "no-write-vtu", &writeVtu,
+                "Write solved nodal fields to VTU on rank 0");
   clp.setOption("max-iters", &maxIters, "GMRES maximum iterations");
   clp.setOption("tol", &tol, "GMRES convergence tolerance");
 
@@ -327,6 +337,19 @@ int main(int argc, char** argv)
       report("Monolithic AMG + GMRES:");
       break;
   }
+
+  multiphys::FieldExportOptions exportOptions;
+  exportOptions.outputPrefix = outputPrefix;
+  exportOptions.writeCsv = writeCsv;
+  exportOptions.writeVtu = writeVtu;
+
+  if (exportOptions.outputPrefix.empty() && (exportOptions.writeCsv || exportOptions.writeVtu))
+    exportOptions.outputPrefix = "thermo-elastic-solution";
+
+  multiphys::exportStructuredMonolithicFields(*x_rcp, *ownedNodeMap,
+                                              Nx, Ny, x0, x1, y0, y1,
+                                              3, {"ux", "uy", "T"}, exportOptions,
+                                              true, true, 0, 1);
 
   return 0;
 }

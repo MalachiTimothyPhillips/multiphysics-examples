@@ -1,0 +1,45 @@
+<ParameterList>
+  <ParameterList name="myInverse">
+    <Parameter name="Type" type="string" value="Block Gauss-Seidel"/>
+    <Parameter name="Inverse Type 1" type="string" value="SolidVoltage"/>
+    <Parameter name="Inverse Type 2" type="string" value="LiquidVoltage"/>
+  </ParameterList>
+
+  <ParameterList name="SolidVoltage">
+    <Parameter name="Type" type="string" value="MueLu"/>
+    <Parameter name="verbosity" type="string" value="timings"/>
+    <Parameter name="coarse: max size" type="int" value="1000"/>
+    <Parameter name="sa: use rowsumabs diagonal scaling" type="bool" value="true"/>
+    <Parameter name="aggregation: drop scheme" type="string" value="classical"/>
+    <Parameter name="aggregation: classical algo" type="string" value="default"/>
+    <Parameter name="aggregation: drop tol" type="double" value="0.04"/>
+    <Parameter name="smoother: type" type="string" value="CHEBYSHEV"/>
+    <ParameterList name="smoother: params">
+      <Parameter name="chebyshev: degree" type="int" value="4"/>
+      <Parameter name="chebyshev: ratio eigenvalue" type="double" value="20.0"/>
+      <Parameter name="chebyshev: min eigenvalue" type="double" value="1.0"/>
+      <Parameter name="chebyshev: zero starting solution" type="bool" value="true"/>
+      <Parameter name="chebyshev: eigenvalue max iterations" type="int" value="15"/>
+      <Parameter name="chebyshev: use rowsumabs diagonal scaling" type="bool" value="true"/>
+    </ParameterList>
+  </ParameterList>
+
+  <ParameterList name="LiquidVoltage">
+    <Parameter name="Type" type="string" value="MueLu"/>
+    <Parameter name="verbosity" type="string" value="timings"/>
+    <Parameter name="coarse: max size" type="int" value="1000"/>
+    <Parameter name="sa: use rowsumabs diagonal scaling" type="bool" value="true"/>
+    <Parameter name="aggregation: drop scheme" type="string" value="classical"/>
+    <Parameter name="aggregation: classical algo" type="string" value="default"/>
+    <Parameter name="aggregation: drop tol" type="double" value="0.02"/>
+    <Parameter name="smoother: type" type="string" value="CHEBYSHEV"/>
+    <ParameterList name="smoother: params">
+      <Parameter name="chebyshev: degree" type="int" value="4"/>
+      <Parameter name="chebyshev: ratio eigenvalue" type="double" value="20.0"/>
+      <Parameter name="chebyshev: min eigenvalue" type="double" value="1.0"/>
+      <Parameter name="chebyshev: zero starting solution" type="bool" value="true"/>
+      <Parameter name="chebyshev: eigenvalue max iterations" type="int" value="15"/>
+      <Parameter name="chebyshev: use rowsumabs diagonal scaling" type="bool" value="true"/>
+    </ParameterList>
+  </ParameterList>
+</ParameterList>
